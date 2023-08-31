@@ -1,0 +1,6 @@
+# node packages that ignored globally and available in package.json
+node_modules/
+
+# dotenv enviroment variable file.
+# ignoring .env file that contains some confidential information like api_key, aws keys and encrytion secret keys.
+.env
