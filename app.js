@@ -4,7 +4,12 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const User = require(__dirname + "/models/user.js");
-const encryption = require("mongoose-encryption");
+const md5 = require("md5");
+
+// console.log(md5("123456"));
+
+// This is for encryption level-2 security.
+// const encryption = require("mongoose-encryption");
 
 // console.log(process.env.API_KEY);
 
@@ -33,7 +38,7 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
     const userEmail = req.body.username;
-    const passwd = req.body.password;
+    const passwd = md5(req.body.password);
 
     const NewUser = new User({
         email: userEmail,
@@ -52,7 +57,7 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
     const username = req.body.username;
-    const pwd = req.body.password;
+    const pwd = md5(req.body.password);
 
     User.findOne({email: username})
     .then((user) => {
