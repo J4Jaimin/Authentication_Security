@@ -4,7 +4,13 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const User = require(__dirname + "/models/user.js");
-const md5 = require("md5");
+
+// This is for level 3 security for generating the hash.
+// const md5 = require("md5");
+
+// This is for level 4 security for generating the hash with salt and saltrounds 10
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 // console.log(md5("123456"));
 
@@ -38,37 +44,42 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
     const userEmail = req.body.username;
-    const passwd = md5(req.body.password);
+    bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
 
-    const NewUser = new User({
-        email: userEmail,
-        password: passwd
-    });
-
-    NewUser.save()
-    .then(() => {
-        console.log("User Registered successfully.");
-        res.render("secrets.ejs");
-    })
-    .catch((err) => {
-        console.log(err);
+        // Store hash in your password DB.
+        const NewUser = new User({
+            email: userEmail,
+            password: hash
+        });
+    
+        NewUser.save()
+        .then(() => {
+            console.log("User Registered successfully.");
+            res.render("secrets.ejs");
+        })
+        .catch((err) => {
+            console.log(err);
+        });
     });
 });
 
 app.post("/login", (req, res) => {
     const username = req.body.username;
-    const pwd = md5(req.body.password);
+    const pwd = req.body.password;
 
     User.findOne({email: username})
     .then((user) => {
-        if(user.password === pwd) {
-            res.render("secrets.ejs");
-            console.log("you are on the home page!");
-        }
-        else{
-            res.render("login.ejs");
-            console.log("Incorrect password");
-        }
+        bcrypt.compare(pwd, user.password, function(err, result) {
+            // result == true
+            if(result === true) {
+                res.render("secrets.ejs");
+                console.log("you are on the home page!");
+            }
+            else{
+                res.render("login.ejs");
+                console.log("Incorrect password");
+            }
+        });
     })
     .catch((err) => {
         console.log("User not found please register.");
